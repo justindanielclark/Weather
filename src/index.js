@@ -1,13 +1,15 @@
 import './Stylesheets/style.css';
 import classes from './Stylesheets/classes';
 import countryCodes from './Data/countryCodes';
-import Search from './Components/Seach'
+import Search from './Components/Search'
 
 //*View
-document.body.className = classes.body;
-Search(document.body)
+const body = document.body;
+body.className = classes.body;
+Search(body, {})
 
 //*App Logic
+/*
 const appID = 'e6432b3e4048fffaddcfccd1781505f5';
 
 const searchQuery = 'Bell';
@@ -31,7 +33,7 @@ getData(geoLocationURL)
 // .catch(error=>{
 //   console.log(error);
 // })
-
+*/
 async function getData(url){
   const response = await fetch(url);
   const data = await response.json();
