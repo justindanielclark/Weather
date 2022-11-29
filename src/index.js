@@ -1,7 +1,7 @@
 import './style.css';
 
 const elvenShieldRecipe = {
-  leatherStrips: 2,
+  leatherStrips: 5,
   ironIngot: 1,
   refinedMoonstone: 4,
 }
