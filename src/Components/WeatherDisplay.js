@@ -177,7 +177,7 @@ const WeatherDisplay = (root, cityData, weatherData) => {
     _El.temperatureInfoPara.innerText = `${_tempDisplay(temp)} °F`;
     _El.temperatureInfoMinPara.innerText = `Min:\n${_tempDisplay(temp_min)}°F`
     _El.temperatureInfoMaxPara.innerText = `Max:\n${_tempDisplay(temp_max)}°F`
-    _El.temperatureInfoFeelsLikePara.innerText = `Feels Like:\n${_tempDisplay(feels_like)}°F`
+    _El.temperatureInfoFeelsLikePara.innerText = `Feels:\n${_tempDisplay(feels_like)}°F`
 
     _El.cloudsInfoImg.src = IconMap['cloudy']
     _El.cloudsInfoPara.innerText = `Cloud Coverage:\n${clouds.all}%`;

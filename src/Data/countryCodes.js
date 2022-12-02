@@ -115,7 +115,7 @@ const countryCodes =
   {"name": "Kazakhstan", "code": "KZ"},
   {"name": "Kenya", "code": "KE"},
   {"name": "Kiribati", "code": "KI"},
-  {"name": "Korea, Dem. People's Rep. of", "code": "KP", "displayName": "Democratic People's Republic of Korea"},
+  {"name": "Korea, Dem. People's Rep. of", "code": "KP", "displayName": "Dem. People's Rep. of Korea"},
   {"name": "Korea, Rep. of", "code": "KR", "displayName": "Republic of Korea"},
   {"name": "Kuwait", "code": "KW"},
   {"name": "Kyrgyzstan", "code": "KG"},

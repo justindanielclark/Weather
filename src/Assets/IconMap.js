@@ -1,5 +1,6 @@
 import barometer from './barometer.svg'
 import binoculars from './binoculars.svg'
+import city from './city.svg'
 import clear_day from './clear_day.svg'
 import clear_night from './clear_night.svg'
 import cloudy from './cloudy.svg'
@@ -49,6 +50,7 @@ import wind from './wind.svg'
 const IconMap = {
 barometer,
 binoculars,
+city,
 clear_day,
 clear_night,
 cloudy,
