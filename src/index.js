@@ -5,7 +5,29 @@ import WeatherDisplay from './Components/WeatherDisplay';
 import CitiesDisplay from './Components/CitiesDisplay';
 
 const appID = 'e6432b3e4048fffaddcfccd1781505f5';
-let storedCities = []
+let cityData = [
+  {
+      "name": "Bellflower",
+      "lat": 33.8825705,
+      "lon": -118.1167679,
+      "country": "US",
+      "state": "California"
+  },
+  {
+      "name": "Bellflower",
+      "lat": 40.3400336,
+      "lon": -88.5270053,
+      "country": "US",
+      "state": "Illinois"
+  },
+  {
+      "name": "Bellflower",
+      "lat": 39.0067081,
+      "lon": -91.3551564,
+      "country": "US",
+      "state": "Missouri"
+  }
+]
 let weatherData;
 
 //*View
@@ -15,13 +37,16 @@ const Display = (() => {
   const viewContainer = document.createElement('div');
   _initBodyAndViewContainer();
   
-  const searchView = Search({
-    getWeatherDataByLatitudeAndLongitude,
-    getWeatherDataByCityName,
-    DisplayEventsCoordinator,
-    root: viewContainer,
-  });
-  searchView.append();
+  const citiesView = CitiesDisplay({root: viewContainer, cityData})
+  citiesView.append();
+
+  // const searchView = Search({
+  //   getWeatherDataByLatitudeAndLongitude,
+  //   getWeatherDataByCityName,
+  //   DisplayEventsCoordinator,
+  //   root: viewContainer,
+  // });
+  // searchView.append();
 
   
   DisplayEventsCoordinator.addEventListener('customEvent1', (event)=>{

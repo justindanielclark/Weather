@@ -1,6 +1,6 @@
 const classes = {
   body: 'bg-zinc-800 p-4 flex flex-col justify-center items-center min-h-screen',
-  viewContainer: 'flex flex-row max-w-sm w-full overflow-hidden border border-red-500 items-center justify-start',
+  viewContainer: 'flex flex-row max-w-sm w-full overflow-hidden items-center justify-start', //border border-red-500
   search: {
     button: 'bg-green-800 hover:bg-green-700 rounded-b-lg text-slate-100 w-full h-10',
     container: 'flex flex-col justify-center items-center w-full',
@@ -37,16 +37,20 @@ const classes = {
     infoPara: 'text-xs text-neutral-100 text-center flex-1',
   },
   citiesDisplay: {
-    container: 'flex flex-col w-full',
-    titleContainer: 'flex flex-row',
-    titleImg: 'h-8 w-8',
-    title: 'text-xl font-bold',
-    citiesList: 'flex flex-col',
-    cityListItem: 'flex flex-row',
-    listNumberingPara: 'text-lg text-neutral-100',
-    cityNamePara: 'text-neutral-100',
-    coordinatesContainer: 'flex flex-row',
-    coordinate: 'text-sm',
+    container: 'flex flex-col w-full text-neutral-100',
+    titleContainer: 'flex flex-row items-center pb-2 border-b-2 border-neutral-100',
+    titleImg: 'h-12 w-12 mx-2',
+    title: 'text-xl font-bold self-end',
+    citiesList: 'flex flex-col gap-2 mt-2',
+    cityListItem: 'w-full',
+    cityListItemButton: 'flex flex-row w-full items-center bg-zinc-900 border border-zinc-700 hover:bg-zinc-700 px-2 rounded-md transition-colors duration-300',
+    listNumberingPara: 'pr-2 text-2xl',
+    cityInfoContainer: 'flex flex-col flex-1 items-start',
+    stateAndCountryPara: 'text-sm pl-3',
+    cityNamePara: 'text-left',
+    coordinatesContainer: 'flex flex-col justify-end',
+    coordinate: 'text-xs text-right',
+    backButton: 'self-end bg-green-700 hover:bg-green-800 transition-colors duration-300 py-1 px-2 rounded-lg mt-2',
   },
   mixins: {
     hidden: 'hidden',
