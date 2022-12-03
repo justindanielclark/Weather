@@ -2,20 +2,13 @@ import classes from "../Stylesheets/classes";
 import countryCodes from "../Data/countryCodes";
 import IconMap from "../Assets/IconMap";
 
-const WeatherDisplay = (root, cityData, weatherData) => {
-  const now = new Date();
-  const utcMilllisecondsSinceEpoch = now.getTime() + (now.getTimezoneOffset() * 60 * 1000)  
-  const utcSecondsSinceEpoch = Math.round(utcMilllisecondsSinceEpoch / 1000)
-  console.log(utcSecondsSinceEpoch);
+const secondsInDay = 86400;
 
-  console.log(cityData);
-  console.log(weatherData);
+const WeatherDisplay = (props) => {
+  const {root} = props;
   let tempDisplay = 'Fahrenheit';
-  const {clouds, coord, main, weather, wind, dt, sys, visibility} = weatherData;
-  const {temp, feels_like, temp_min, temp_max, humidity} = main;
-  const {sunrise, sunset} = sys;
+  let city, nowWeather, weatherList, sunrise, sunset;
 
-  
   const _IconCodeSVGs = {
     //Thunderstorms
     '200': {day: 'thunderstorms_day', night: 'thunderstorms_night'},
@@ -85,9 +78,7 @@ const WeatherDisplay = (root, cityData, weatherData) => {
     topContainer: document.createElement('div'),
     weatherImg: document.createElement('img'),
 
-    cityInfoContainer: document.createElement('div'),
     title: document.createElement('h1'),
-    subTitle: document.createElement('h2'),
 
     temperatureInfoContainer: document.createElement('div'),
     temperatureInfoPara: document.createElement('p'),
@@ -112,17 +103,11 @@ const WeatherDisplay = (root, cityData, weatherData) => {
     humidityInfo: document.createElement('div'),
     humidityInfoImg: document.createElement('img'),
     humidityInfoPara: document.createElement('p'),
-
   }
   _init();
-  root.append(_El.container);
   function _init(){
     _init_applyClasses();
-    _init_applyAttributes();
     _init_buildDOMTree();
-    _outputValues();
-    _wireHandlers();
-
     function _init_applyClasses(){
       for(let element in _El){
         if(classes.weatherDisplay[element]){
@@ -145,13 +130,9 @@ const WeatherDisplay = (root, cityData, weatherData) => {
       classes.add(_El.visibilityInfoPara, classes.weatherDisplay.infoPara);
       classes.add(_El.humidityInfoPara, classes.weatherDisplay.infoPara);
     }
-    function _init_applyAttributes(){
-
-    }
     function _init_buildDOMTree(){
       _El.container.append(_El.topContainer, _El.bottomContainer);
-      _El.topContainer.append(_El.weatherImg, _El.cityInfoContainer, _El.temperatureInfoContainer);
-      _El.cityInfoContainer.append(_El.title, _El.subTitle);
+      _El.topContainer.append(_El.weatherImg, _El.title, _El.temperatureInfoContainer);
       _El.temperatureInfoContainer.append(_El.temperatureInfoPara, _El.temperatureInfoBottomContainer);
       _El.temperatureInfoBottomContainer.append(_El.temperatureInfoMinPara, _El.temperatureInfoMaxPara, _El.temperatureInfoFeelsLikePara);
       _El.bottomContainer.append(_El.cloudsInfo, _El.windInfo, _El.visibilityInfo, _El.humidityInfo)
@@ -160,50 +141,58 @@ const WeatherDisplay = (root, cityData, weatherData) => {
       _El.visibilityInfo.append(_El.visibilityInfoImg, _El.visibilityInfoPara);
       _El.humidityInfo.append(_El.humidityInfoImg, _El.humidityInfoPara);
     }
-    
   }
-  function _wireHandlers(){
-    return null;
-  }
-  function _outputValues(){
-    const dayOrNight = (dt >= sunrise && dt <= sunset) ? 'day' : 'night';
-    _El.weatherImg.src = IconMap[_IconCodeSVGs[weather[0].id][dayOrNight]]
-    _El.title.innerText = cityData.name;
-    const stateName = cityData.state ? cityData.state + ', ' : '';
-    const countryData = countryCodes[countryCodes.findIndex(c=>c.code === cityData.country)];
-    const countryName = countryData["displayName"] ? countryData["displayName"] : countryData["name"];
-    _El.subTitle.innerText = stateName + countryName;
+  function update(data){
+    const {city} = data;
+    const {sunrise, sunset} = data;
+    const weatherDisplayData = _transformWeatherDatum(data.list[0]);
 
-    _El.temperatureInfoPara.innerText = `${_tempDisplay(temp)} °F`;
-    _El.temperatureInfoMinPara.innerText = `Min:\n${_tempDisplay(temp_min)}°F`
-    _El.temperatureInfoMaxPara.innerText = `Max:\n${_tempDisplay(temp_max)}°F`
-    _El.temperatureInfoFeelsLikePara.innerText = `Feels:\n${_tempDisplay(feels_like)}°F`
 
+
+
+    // console.log(new Date((weatherDisplayData.atTime*1000)+city.timezone).toString());
+    console.log(weatherDisplayData.atTime)
+    console.log(new Date().toISOString());
+    //Determine if Day or Night
+    const now = new Date();
+    const utcMilllisecondsSinceEpoch = now.getTime() + (now.getTimezoneOffset() * 60 * 1000)  
+    const utcSecondsSinceEpoch = Math.round(utcMilllisecondsSinceEpoch / 1000)
+    const dayOrNight = (weatherDisplayData.atTime >= sunrise && weatherDisplayData.atTime <= sunset) ? 'day' : 'night';
+    //Icon
+    _El.weatherImg.src = IconMap[_IconCodeSVGs[weatherDisplayData.weatherID][dayOrNight]];
+    //Title
+    _El.title.innerText = city.name;
+    //Temp
+    _El.temperatureInfoPara.innerText = `${_tempDisplay(weatherDisplayData.temp)} °F`;
+    _El.temperatureInfoMinPara.innerText = `Min:\n${_tempDisplay(weatherDisplayData.temp_min)}°F`
+    _El.temperatureInfoMaxPara.innerText = `Max:\n${_tempDisplay(weatherDisplayData.temp_max)}°F`
+    _El.temperatureInfoFeelsLikePara.innerText = `Feels:\n${_tempDisplay(weatherDisplayData.feels_like)}°F`
+    //Clouds
     _El.cloudsInfoImg.src = IconMap['cloudy']
-    _El.cloudsInfoPara.innerText = `Cloud Coverage:\n${clouds.all}%`;
-
-    let windMessage = `Wind Speed:\n${wind.speed}mph`;
+    _El.cloudsInfoPara.innerText = `Cloud Coverage:\n${weatherDisplayData.clouds}%`;
+    //Wind
+    let windMessage = `Wind Speed:\n${weatherDisplayData.windSpeed}mph`;
     let windDirection;
-    if(wind.deg){
-      if((wind.deg >= 0 && wind.deg < 22.5) || wind.deg >= 337.5){
+    if(weatherDisplayData.windDeg){
+      if((weatherDisplayData.windDeg >= 0 && weatherDisplayData.windDeg < 22.5) || weatherDisplayData.windDeg >= 337.5){
         windDirection = 'N';
       }
-      else if(wind.deg >= 22.5 && wind.deg < 67.5){
+      else if(weatherDisplayData.windDeg >= 22.5 && weatherDisplayData.windDeg < 67.5){
         windDirection = 'NE';
       }
-      else if(wind.deg >= 67.5 && wind.deg < 112.5){
+      else if(weatherDisplayData.windDeg >= 67.5 && weatherDisplayData.windDeg < 112.5){
         windDirection = 'E';
       }
-      else if(wind.deg >= 112.5 && wind.deg < 157.5){
+      else if(weatherDisplayData.windDeg >= 112.5 && weatherDisplayData.windDeg < 157.5){
         windDirection = 'SE';
       }
-      else if(wind.deg >= 157.5 && wind.deg < 202.5){
+      else if(weatherDisplayData.windDeg >= 157.5 && weatherDisplayData.windDeg < 202.5){
         windDirection = 'S';
       }
-      else if(wind.deg >= 202.5 && wind.deg < 247.5){
+      else if(weatherDisplayData.windDeg >= 202.5 && weatherDisplayData.windDeg < 247.5){
         windDirection = 'SW';
       }
-      else if(wind.deg >= 247.5 && wind.deg < 292.5){
+      else if(weatherDisplayData.windDeg >= 247.5 && weatherDisplayData.windDeg < 292.5){
         windDirection = 'W';
       }
       else {
@@ -213,21 +202,21 @@ const WeatherDisplay = (root, cityData, weatherData) => {
     }
     _El.windInfoImg.src = IconMap['windsock'];
     _El.windInfoPara.innerText = windMessage;
-
+    //Visibility
     let visibilityMessage = 'Visibility:\n';
-    if(visibility < 1000){
+    if(weatherDisplayData.visibility < 1000){
       visibilityMessage += 'Very Poor';
-    } else if(visibility >= 1000 && visibility < 2000){
+    } else if(weatherDisplayData.visibility >= 1000 && weatherDisplayData.visibility < 2000){
       visibilityMessage += 'Poor';
-    } else if(visibility >= 2000 && visibility < 4000){
+    } else if(weatherDisplayData.visibility >= 2000 && weatherDisplayData.visibility < 4000){
       visibilityMessage += 'Hazy';
     } else {
       visibilityMessage += 'Clear';
     }
     _El.visibilityInfoImg.src = IconMap['binoculars'];
     _El.visibilityInfoPara.innerText = visibilityMessage;
-
-    let humidityMessage = `Humidity:\n${humidity}%`;
+    //Humidity
+    let humidityMessage = `Humidity:\n${weatherDisplayData.humidity}%`;
     _El.humidityInfoImg.src = IconMap['humidity'];
     _El.humidityInfoPara.innerText = humidityMessage;
   }
@@ -237,6 +226,37 @@ const WeatherDisplay = (root, cityData, weatherData) => {
   function _tempDisplay(temp){
     return Number.parseFloat(temp).toFixed(1);
   }
-  return {};
+  function append(){
+    if(!Array.from(root.children).includes(_El.container)){
+      root.append(_El.container);
+    }
+  }
+  function remove(){
+    if(Array.from(root.children).includes(_El.container)){
+      root.removeChild(_El.container);
+    }
+  }
+  function _transformWeatherDatum(weatherDatum){
+    return {
+      atTime: weatherDatum.dt,
+      clouds: weatherDatum.clouds.all,
+      temp: weatherDatum.main.temp,
+      temp_max: weatherDatum.main.temp_max,
+      temp_min: weatherDatum.main.temp_min,
+      pressure: weatherDatum.main.pressure,
+      humidity: weatherDatum.main.humidity,
+      feels_like: weatherDatum.main.feels_like,
+      visibility: weatherDatum.visibility,
+      weatherID: weatherDatum.weather[0].id,
+      weatherDescription: weatherDatum.weather[0].description,
+      windDeg: weatherDatum.wind.deg,
+      windSpeed: weatherDatum.wind.speed,
+    }
+  }
+  return {
+    append,
+    remove,
+    update,
+  };
 }
 export default WeatherDisplay;

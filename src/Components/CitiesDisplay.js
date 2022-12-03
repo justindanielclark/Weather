@@ -3,7 +3,7 @@ import countryCodes from "../Data/countryCodes";
 import IconMap from "../Assets/IconMap";
 
 const CitiesDisplay = (props) => {
-  const {root, cityData} = props;
+  const {root, showSearchView} = props;
   const _El = {
     container: document.createElement('div'),
     titleContainer: document.createElement('div'),
@@ -18,7 +18,8 @@ const CitiesDisplay = (props) => {
     _init_buildDOMTree();
     _init_applyClasses();
     _init_applyAttributes();
-    _init_buildCitiesList();
+    _El.backButton.addEventListener('click', showSearchView);
+
     function _init_buildDOMTree(){
       _El.titleContainer.append(_El.titleImg, _El.title);
       _El.container.append(_El.titleContainer, _El.citiesList, _El.backButton);
@@ -35,46 +36,54 @@ const CitiesDisplay = (props) => {
         }
       }
     }
-    function _init_buildCitiesList(){
-      const countryData = countryCodes[countryCodes.findIndex(country => country.code === cityData[0].country)];
-      const countryName = countryData["displayName"] ? countryData["displayName"] : countryData["name"];
-      cityData.forEach((cityDatum, index) => {
-        const cityListItem = document.createElement('li');
-        const cityListItemButton = document.createElement('button');
-        const listNumberingPara = document.createElement('p');
-        const cityInfoContainer = document.createElement('div');
-        const cityNamePara = document.createElement('p');
-        const stateAndCountryPara = document.createElement('p')
-        const coordinatesContainer = document.createElement('div');
-        const latCordPara = document.createElement('p');
-        const lonCordPara = document.createElement('p');
-        
-        classes.add(cityListItem, classes.citiesDisplay.cityListItem);
-        classes.add(cityListItemButton, classes.citiesDisplay.cityListItemButton);
-        classes.add(listNumberingPara, classes.citiesDisplay.listNumberingPara);
-        classes.add(cityInfoContainer, classes.citiesDisplay.cityInfoContainer);
-        classes.add(cityNamePara, classes.citiesDisplay.cityNamePara);
-        classes.add(stateAndCountryPara, classes.citiesDisplay.stateAndCountryPara)
-        classes.add(coordinatesContainer, classes.citiesDisplay.coordinatesContainer);
-        classes.add(latCordPara, classes.citiesDisplay.coordinate);
-        classes.add(lonCordPara, classes.citiesDisplay.coordinate);
-
-        listNumberingPara.innerText = `${index+1}.`;
-        cityNamePara.innerText = cityDatum.name;
-        stateAndCountryPara.innerText = cityDatum.state ? `${cityDatum.state}, ${countryName}` : `${countryName}`;
-
-        latCordPara.innerText = `Lat: ${Number.parseFloat(cityDatum.lat).toFixed(2)}`;
-        lonCordPara.innerText = ` Lon: ${Number.parseFloat(cityDatum.lon).toFixed(2)}`;
-        
-        cityInfoContainer.append(cityNamePara, stateAndCountryPara);
-        coordinatesContainer.append(latCordPara, lonCordPara);
-        cityListItemButton.append(listNumberingPara, cityInfoContainer, coordinatesContainer)
-        cityListItem.append(cityListItemButton);
-        _El.citiesList.append(cityListItem);
-      })
+  }
+  function update(cityData){
+    while(_El.citiesList.lastChild){
+      _El.citiesList.removeChild(_El.citiesList.lastChild);
     }
+    const countryData = countryCodes[countryCodes.findIndex(country => country.code === cityData[0].country)];
+    const countryName = countryData["displayName"] ? countryData["displayName"] : countryData["name"];
+    cityData.forEach((cityDatum, index) => {
+      const cityListItem = document.createElement('li');
+      const cityListItemButton = document.createElement('button');
+      const listNumberingPara = document.createElement('p');
+      const cityInfoContainer = document.createElement('div');
+      const cityNamePara = document.createElement('p');
+      const stateAndCountryPara = document.createElement('p')
+      const coordinatesContainer = document.createElement('div');
+      const latCordPara = document.createElement('p');
+      const lonCordPara = document.createElement('p');
+      
+      classes.add(cityListItem, classes.citiesDisplay.cityListItem);
+      classes.add(cityListItemButton, classes.citiesDisplay.cityListItemButton);
+      classes.add(listNumberingPara, classes.citiesDisplay.listNumberingPara);
+      classes.add(cityInfoContainer, classes.citiesDisplay.cityInfoContainer);
+      classes.add(cityNamePara, classes.citiesDisplay.cityNamePara);
+      classes.add(stateAndCountryPara, classes.citiesDisplay.stateAndCountryPara)
+      classes.add(coordinatesContainer, classes.citiesDisplay.coordinatesContainer);
+      classes.add(latCordPara, classes.citiesDisplay.coordinate);
+      classes.add(lonCordPara, classes.citiesDisplay.coordinate);
+
+      listNumberingPara.innerText = `${index+1}.`;
+      cityNamePara.innerText = cityDatum.name;
+      stateAndCountryPara.innerText = cityDatum.state ? `${cityDatum.state}, ${countryName}` : `${countryName}`;
+
+      latCordPara.innerText = `Lat: ${Number.parseFloat(cityDatum.lat).toFixed(2)}`;
+      lonCordPara.innerText = ` Lon: ${Number.parseFloat(cityDatum.lon).toFixed(2)}`;
+      
+      cityInfoContainer.append(cityNamePara, stateAndCountryPara);
+      coordinatesContainer.append(latCordPara, lonCordPara);
+      cityListItemButton.append(listNumberingPara, cityInfoContainer, coordinatesContainer)
+      cityListItem.append(cityListItemButton);
+      _El.citiesList.append(cityListItem);
+    })
   }
   function append(){
+    if(!Array.from(root.children).includes(_El.container)){
+      root.append(_El.container);
+    }
+  }
+  function prepend(){
     if(!Array.from(root.children).includes(_El.container)){
       root.prepend(_El.container);
     }
@@ -84,11 +93,15 @@ const CitiesDisplay = (props) => {
       root.removeChild(_El.container);
     }
   }
-  function _handleClick_backButton(){} //toDo
+  function _handleClick_backButton(){
+
+  } //toDo
   function _handleClick_cityButton(){} //toDo
   return {
     append,
+    prepend,
     remove,
+    update,
   }
 }
 

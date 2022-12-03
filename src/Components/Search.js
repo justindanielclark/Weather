@@ -1,6 +1,7 @@
 import classes from "../Stylesheets/classes";
 import magnifyingGlass from '../Assets/magnifyingGlass.svg';
 import countryCodes from "../Data/countryCodes";
+import IconMap from "../Assets/IconMap";
 const latitudeLimits = {
   min: -90,
   max: 90,
@@ -13,7 +14,6 @@ const Search = (props) => {
   const {
     getWeatherDataByLatitudeAndLongitude,
     getWeatherDataByCityName,
-    DisplayEventsCoordinator,
     root
   } = props;
   const _El = {
@@ -37,13 +37,15 @@ const Search = (props) => {
     button: document.createElement('button'),
     warningNote: document.createElement('p'),
   }
+  let _warningTimeout;
+  const _warningTimeoutDuration = 2500;
   let _lastCheckedRadio = _El.optionRadioButtonCityName;
   let _searchModes = ['CityName', 'Latitude&Longitude'];
   let _searchMode = 0;
   let _visible = true;
 
   _init(root)
-
+  _El.inputCityName.value = 'Bellflower' //!
   function _init(root){
     _init_applyClasses();
     _init_applyAttributes();
@@ -102,6 +104,7 @@ const Search = (props) => {
       classes.add(_El.optionLabelLatitudeAndLongitude, classes.search.label, classes.mixins.labelUnchecked)
       classes.add(_El.optionRadioButtonCityName, classes.mixins.screenReaderOnly);
       classes.add(_El.optionRadioButtonLatitudeAndLongitude, classes.mixins.screenReaderOnly);
+      classes.add(_El.warningNote, classes.mixins.invisible);
     }
     function _init_buildDOMTree(){
       _El.inputCountryName.append()
@@ -154,9 +157,14 @@ const Search = (props) => {
       _El.button.addEventListener('click', _handleClick_searchButton);
     }
   }
-  function append(){
+  function prepend(){
     if(!Array.from(root.children).includes(_El.container)){
       root.prepend(_El.container);
+    }
+  }
+  function append(){
+    if(!Array.from(root.children).includes(_El.container)){
+      root.append(_El.container);
     }
   }
   function remove(){
@@ -189,6 +197,10 @@ const Search = (props) => {
       _El.optionLabelCityName.classList.toggle(classes.mixins.labelUnchecked);
       _El.optionLabelLatitudeAndLongitude.classList.toggle(classes.mixins.labelChecked);
       _El.optionLabelLatitudeAndLongitude.classList.toggle(classes.mixins.labelUnchecked);
+      if(_warningTimeout){
+        clearTimeout(_warningTimeout);
+        hideWarning();
+      }
       if(this === _El.optionRadioButtonCityName){
         _El.inputGroup.removeChild(_El.coordinateInputGroup);
         _El.inputGroup.prepend(_El.cityInputGroup);
@@ -200,30 +212,72 @@ const Search = (props) => {
       }
     }
   }
-  function _handleClick_searchButton(){
-    if(_searchModes[_searchMode] === 'CityName'){
-      const cityName = _El.inputCityName.value;
-      const countryCode = _El.inputCountryName.value;
-      const stateName = _El.inputStateName.value;
-      let cityQuery;
-      if(stateName === ''){
-        cityQuery = `${cityName}, ${countryCode}`
+  function _handleClick_searchButton(event){
+    if(!_El.button.disabled){
+      if(_searchModes[_searchMode] === 'CityName'){
+        const cityName = _El.inputCityName.value;
+        if(cityName === ''){
+          showWarning('Entering a City Name is Required');
+        } else {
+          const countryCode = _El.inputCountryName.value;
+          const stateName = _El.inputStateName.value;
+          let cityQuery;
+          if(stateName === ''){
+            cityQuery = `${cityName}, ${countryCode}`
+          }
+          else{
+            cityQuery = `${cityName}, ${stateName}, ${countryCode}`;
+          }
+          getWeatherDataByCityName(cityQuery);
+        }
+      } else {
+        const latitudeVal = _El.inputLatitude.value;
+        const longitudeVal = _El.inputLongitude.value;
+        if(latitudeVal && longitudeVal){
+          getWeatherDataByLatitudeAndLongitude(_El.inputLatitude.value, _El.inputLongitude.value);
+        } else {
+          showWarning('Entering Both Latitude and Longitude is Required');
+        }
       }
-      else{
-        cityQuery = `${cityName}, ${stateName}, ${countryCode}`;
-      }
-      getWeatherDataByCityName(`${cityName}, ${stateName}, ${countryCode}`);
-    } else {
-      getWeatherDataByLatitudeAndLongitude(_El.inputLatitude.value, _El.inputLongitude.value);
+    }
+  }    
+  function showWarning(note){ 
+    if(_warningTimeout){
+      clearInterval(_warningTimeout);
+    }
+    _warningTimeout = setInterval(()=>{
+      hideWarning();
+      clearInterval(_warningTimeout);
+      _warningTimeout = undefined;
+    }, _warningTimeoutDuration);
+
+    if(_El.warningNote.classList.contains(classes.mixins.invisible)){
+      _El.warningNote.classList.remove(classes.mixins.invisible);
+      _El.warningNote.classList.add(classes.mixins.visible);
+    }
+    _El.warningNote.innerText = note;
+  }
+  function hideWarning(){
+    if(_El.warningNote.classList.contains(classes.mixins.visible)){
+      _El.warningNote.classList.add(classes.mixins.invisible);
+      _El.warningNote.classList.remove(classes.mixins.visible);
     }
   }
-  function showWarning(note){ //TODO
-
+  function toggleButtonDisabled(){
+    _El.button.disabled = !_El.button.disabled;
+    if(_El.button.disabled){
+      _El.button.innerText = 'Searching...';
+    }
+    else{
+      _El.button.innerText = 'Search'
+      _El.button.removeChild(_El.searchingIcon);
+    }
   }
   return {
     append,
+    prepend,
     remove,
-    showWarning
+    showWarning,
   }
 }
 

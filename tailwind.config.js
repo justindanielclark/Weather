@@ -1,3 +1,5 @@
+const slideTimings = '.5s';
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -6,13 +8,18 @@ module.exports = {
   theme: {
     extend: {
       animation: {
-        // 'showSearch': 'showSearch ease .25s',
+        slideLeft: `slideLeft ease-in-out ${slideTimings}`,
+        slideRight: `slideRight ease-in-out ${slideTimings}`,
       },
       keyframes: {
-        // showSearch: {
-        //   '0%': {maxHeight: '0rem'},
-        //   '100%': {maxHeight: '14rem'},
-        // },
+        slideLeft: {
+          '0%': {transform: 'translateX(0%)'},
+          '100%': {transform: 'translateX(-100%)'}
+        },
+        slideRight: {
+          '0%': {transform: 'translateX(-100%)'},
+          '100%': {transform: 'translateX(0%)'}
+        }
       },
     },
   },
