@@ -5,10 +5,7 @@ import IconMap from "../Assets/IconMap";
 const secondsInDay = 86400;
 
 const WeatherDisplay = (props) => {
-  const {root} = props;
-  let tempDisplay = 'Fahrenheit';
-  let city, nowWeather, weatherList, sunrise, sunset;
-
+  const {root, showSearchView} = props;
   const _IconCodeSVGs = {
     //Thunderstorms
     '200': {day: 'thunderstorms_day', night: 'thunderstorms_night'},
@@ -103,11 +100,20 @@ const WeatherDisplay = (props) => {
     humidityInfo: document.createElement('div'),
     humidityInfoImg: document.createElement('img'),
     humidityInfoPara: document.createElement('p'),
+    
+    forecastContainer: document.createElement('div'),
+    forecastTitle: document.createElement('h2'),
+    forecastSlider: document.createElement('div'),
+
+    backButton: document.createElement('button'),
   }
   _init();
   function _init(){
     _init_applyClasses();
     _init_buildDOMTree();
+    _El.backButton.innerText = 'Return to Search';
+    _El.backButton.addEventListener('click', showSearchView);
+    _El.forecastTitle.innerText = 'Forecast:'
     function _init_applyClasses(){
       for(let element in _El){
         if(classes.weatherDisplay[element]){
@@ -131,7 +137,7 @@ const WeatherDisplay = (props) => {
       classes.add(_El.humidityInfoPara, classes.weatherDisplay.infoPara);
     }
     function _init_buildDOMTree(){
-      _El.container.append(_El.topContainer, _El.bottomContainer);
+      _El.container.append(_El.topContainer, _El.bottomContainer, _El.forecastContainer, _El.backButton);
       _El.topContainer.append(_El.weatherImg, _El.title, _El.temperatureInfoContainer);
       _El.temperatureInfoContainer.append(_El.temperatureInfoPara, _El.temperatureInfoBottomContainer);
       _El.temperatureInfoBottomContainer.append(_El.temperatureInfoMinPara, _El.temperatureInfoMaxPara, _El.temperatureInfoFeelsLikePara);
@@ -140,88 +146,150 @@ const WeatherDisplay = (props) => {
       _El.windInfo.append(_El.windInfoImg, _El.windInfoPara);
       _El.visibilityInfo.append(_El.visibilityInfoImg, _El.visibilityInfoPara);
       _El.humidityInfo.append(_El.humidityInfoImg, _El.humidityInfoPara);
+      _El.forecastContainer.append(_El.forecastTitle, _El.forecastSlider);
     }
   }
-  function update(data){
-    const {city} = data;
-    const {sunrise, sunset} = data;
-    const weatherDisplayData = _transformWeatherDatum(data.list[0]);
-
-
-
-
-    // console.log(new Date((weatherDisplayData.atTime*1000)+city.timezone).toString());
-    console.log(weatherDisplayData.atTime)
-    console.log(new Date().toISOString());
-    //Determine if Day or Night
-    const now = new Date();
-    const utcMilllisecondsSinceEpoch = now.getTime() + (now.getTimezoneOffset() * 60 * 1000)  
-    const utcSecondsSinceEpoch = Math.round(utcMilllisecondsSinceEpoch / 1000)
-    const dayOrNight = (weatherDisplayData.atTime >= sunrise && weatherDisplayData.atTime <= sunset) ? 'day' : 'night';
-    //Icon
-    _El.weatherImg.src = IconMap[_IconCodeSVGs[weatherDisplayData.weatherID][dayOrNight]];
-    //Title
-    _El.title.innerText = city.name;
-    //Temp
-    _El.temperatureInfoPara.innerText = `${_tempDisplay(weatherDisplayData.temp)} °F`;
-    _El.temperatureInfoMinPara.innerText = `Min:\n${_tempDisplay(weatherDisplayData.temp_min)}°F`
-    _El.temperatureInfoMaxPara.innerText = `Max:\n${_tempDisplay(weatherDisplayData.temp_max)}°F`
-    _El.temperatureInfoFeelsLikePara.innerText = `Feels:\n${_tempDisplay(weatherDisplayData.feels_like)}°F`
-    //Clouds
-    _El.cloudsInfoImg.src = IconMap['cloudy']
-    _El.cloudsInfoPara.innerText = `Cloud Coverage:\n${weatherDisplayData.clouds}%`;
-    //Wind
-    let windMessage = `Wind Speed:\n${weatherDisplayData.windSpeed}mph`;
-    let windDirection;
-    if(weatherDisplayData.windDeg){
-      if((weatherDisplayData.windDeg >= 0 && weatherDisplayData.windDeg < 22.5) || weatherDisplayData.windDeg >= 337.5){
-        windDirection = 'N';
-      }
-      else if(weatherDisplayData.windDeg >= 22.5 && weatherDisplayData.windDeg < 67.5){
-        windDirection = 'NE';
-      }
-      else if(weatherDisplayData.windDeg >= 67.5 && weatherDisplayData.windDeg < 112.5){
-        windDirection = 'E';
-      }
-      else if(weatherDisplayData.windDeg >= 112.5 && weatherDisplayData.windDeg < 157.5){
-        windDirection = 'SE';
-      }
-      else if(weatherDisplayData.windDeg >= 157.5 && weatherDisplayData.windDeg < 202.5){
-        windDirection = 'S';
-      }
-      else if(weatherDisplayData.windDeg >= 202.5 && weatherDisplayData.windDeg < 247.5){
-        windDirection = 'SW';
-      }
-      else if(weatherDisplayData.windDeg >= 247.5 && weatherDisplayData.windDeg < 292.5){
-        windDirection = 'W';
-      }
-      else {
-        windDirection = 'NW';
-      }
-      windMessage += ` ${windDirection}`;
+  function update(currentWeatherData, forecastWeatherData){
+    const {name: cityName, timezone: timezoneOffset, dt: atTime} = currentWeatherData;
+    const mainDisplaysDate = new Date((atTime+timezoneOffset)*1000).getDate();
+    console.log(mainDisplaysDate);
+    const {sunrise, sunset} = currentWeatherData.sys;
+    _updateCurrentWeatherDisplay(_transformWeatherDatum(currentWeatherData));
+    _updateForecastWeatherDisplay(forecastWeatherData, timezoneOffset, sunrise, sunset, mainDisplaysDate);
+    function _updateCurrentWeatherDisplay(weatherDisplayData){
+      console.log('Weather Display Data')
+      console.log(weatherDisplayData);
+      //Determine if Day or Night
+      const dayOrNight = (weatherDisplayData.atTime >= sunrise && weatherDisplayData.atTime <= sunset) ? 'day' : 'night';
+      //Icon
+      _El.weatherImg.src = IconMap[_IconCodeSVGs[weatherDisplayData.weatherID][dayOrNight]];
+      //Title
+      _El.title.innerText = cityName;
+      //Temp
+      _El.temperatureInfoPara.innerText = `${_tempDisplay(weatherDisplayData.temp)} °F`;
+      _El.temperatureInfoMinPara.innerText = `Min:\n${_tempDisplay(weatherDisplayData.temp_min)}°F`
+      _El.temperatureInfoMaxPara.innerText = `Max:\n${_tempDisplay(weatherDisplayData.temp_max)}°F`
+      _El.temperatureInfoFeelsLikePara.innerText = `Feels:\n${_tempDisplay(weatherDisplayData.feels_like)}°F`
+      //Clouds
+      _El.cloudsInfoImg.src = IconMap['cloudy']
+      _El.cloudsInfoPara.innerText = `Cloud Coverage:\n${weatherDisplayData.clouds}%`;
+      //Wind
+      _El.windInfoImg.src = IconMap['windsock'];
+      _El.windInfoPara.innerText = `Wind Speed:\n${weatherDisplayData.windSpeed}mph ${_determineWindDirection(weatherDisplayData.windDeg)}`;
+      //Visibility
+      _El.visibilityInfoImg.src = IconMap['binoculars'];
+      _El.visibilityInfoPara.innerText = `Visibility:\n${_determineVisibility(weatherDisplayData.visibility)}`;
+      //Humidity
+      let humidityMessage = `Humidity:\n${weatherDisplayData.humidity}%`;
+      _El.humidityInfoImg.src = IconMap['humidity'];
+      _El.humidityInfoPara.innerText = humidityMessage;
     }
-    _El.windInfoImg.src = IconMap['windsock'];
-    _El.windInfoPara.innerText = windMessage;
-    //Visibility
-    let visibilityMessage = 'Visibility:\n';
-    if(weatherDisplayData.visibility < 1000){
-      visibilityMessage += 'Very Poor';
-    } else if(weatherDisplayData.visibility >= 1000 && weatherDisplayData.visibility < 2000){
-      visibilityMessage += 'Poor';
-    } else if(weatherDisplayData.visibility >= 2000 && weatherDisplayData.visibility < 4000){
-      visibilityMessage += 'Hazy';
-    } else {
-      visibilityMessage += 'Clear';
+    function _updateForecastWeatherDisplay(forecastWeatherData, timezoneOffset, sunrise, sunset, displayDate){
+      const dailySecondsShift = 86400;
+      forecastWeatherData.list.forEach((weatherDatum) => {
+        const weatherDisplayData = _transformWeatherDatum(weatherDatum);
+        const time = new Date((weatherDisplayData.atTime+timezoneOffset)*1000);
+        let todaysSunrise = sunrise + ((time.getDate()-displayDate)*dailySecondsShift);
+        let todaysSunset = sunset + ((time.getDate()-displayDate)*dailySecondsShift);
+        //Determine if Day or Night
+        const dayOrNight = (weatherDisplayData.atTime >= todaysSunrise && weatherDisplayData.atTime <= todaysSunset) ? 'day' : 'night';
+        //Build DOM
+        const forecastSlide = document.createElement('div');
+        const forecastImg = document.createElement('img');
+        const forecastTime = document.createElement('p');
+        const forecastTemp = document.createElement('p');
+        const forecastTempMax = document.createElement('p');
+        const forecastTempMin = document.createElement('p');
+        const forecastTempFeelsLike = document.createElement('p');
+        const forecastCloudInfo = document.createElement('p');
+        const forecastWindInfo = document.createElement('p');
+        const forecastVisibilityInfo = document.createElement('p');
+        const forecastHumidityInfo = document.createElement('p');
+        forecastSlide.append(
+          forecastTime,
+          forecastImg, 
+          forecastTemp, 
+          forecastTempMax, 
+          forecastTempMin, 
+          forecastTempFeelsLike,
+          forecastCloudInfo,
+          forecastWindInfo,
+          forecastVisibilityInfo,
+          forecastHumidityInfo,
+        );
+        _El.forecastSlider.append(forecastSlide);
+        //Apply Classes
+        classes.add(forecastSlide, classes.weatherDisplay.forecastSlide);
+        classes.add(forecastTime, classes.weatherDisplay.forecastInfoTimeDisplay);
+        classes.add(forecastTemp, classes.weatherDisplay.forecastInfo);
+        classes.add(forecastTempMax, classes.weatherDisplay.forecastInfo);
+        classes.add(forecastTempMin, classes.weatherDisplay.forecastInfo);
+        classes.add(forecastTempFeelsLike, classes.weatherDisplay.forecastInfo);
+        classes.add(forecastCloudInfo, classes.weatherDisplay.forecastInfo);
+        classes.add(forecastWindInfo, classes.weatherDisplay.forecastInfo);
+        classes.add(forecastVisibilityInfo, classes.weatherDisplay.forecastInfo);
+        classes.add(forecastHumidityInfo, classes.weatherDisplay.forecastInfo);
+        //Apply Data
+        forecastImg.src = IconMap[_IconCodeSVGs[weatherDisplayData.weatherID][dayOrNight]];
+        const hours = time.getHours();
+        let hoursMessage
+        if(hours-12 > 0){
+          hoursMessage = (hours-12) + 'PM'
+        } else {
+          if(hours === 0) {hoursMessage = '12PM'}
+          else{hoursMessage = hours + 'AM'}
+        }
+        forecastTime.innerText = hoursMessage
+        forecastTemp.innerText = `${weatherDisplayData.temp}°F`;
+        forecastTempMax.innerText = `${weatherDisplayData.temp_max}°F`;
+        forecastTempMin.innerText = `${weatherDisplayData.temp_min}°F`;
+        forecastTempFeelsLike.innerText = `${weatherDisplayData.feels_like}°F`;
+        forecastCloudInfo.innerText = `${weatherDisplayData.clouds}%`;
+        forecastWindInfo.innerText = `${weatherDisplayData.windSpeed} ${_determineWindDirection(weatherDisplayData.windDeg)}`
+        forecastVisibilityInfo.innerText = _determineVisibility(weatherDisplayData.visibility)
+        forecastHumidityInfo.innerText = `${weatherDisplayData.humidity}%` 
+      })
     }
-    _El.visibilityInfoImg.src = IconMap['binoculars'];
-    _El.visibilityInfoPara.innerText = visibilityMessage;
-    //Humidity
-    let humidityMessage = `Humidity:\n${weatherDisplayData.humidity}%`;
-    _El.humidityInfoImg.src = IconMap['humidity'];
-    _El.humidityInfoPara.innerText = humidityMessage;
   }
   function _fahrenheitToCelcius(temp){
     return ((temp-32)(5/9)).toFixed(1);
+  }
+  function _determineWindDirection(windDeg){
+    if(windDeg){
+      if((windDeg >= 0 && windDeg < 22.5) || windDeg >= 337.5){
+        return 'N';
+      }
+      else if(windDeg >= 22.5 && windDeg < 67.5){
+        return 'NE';
+      }
+      else if(windDeg >= 67.5 && windDeg < 112.5){
+        return 'E';
+      }
+      else if(windDeg >= 112.5 && windDeg < 157.5){
+        return 'SE';
+      }
+      else if(windDeg >= 157.5 && windDeg < 202.5){
+        return 'S';
+      }
+      else if(windDeg >= 202.5 && windDeg < 247.5){
+        return 'SW';
+      }
+      else if(windDeg >= 247.5 && windDeg < 292.5){
+        return 'W';
+      }
+      return 'NW';
+    }
+  }
+  function _determineVisibility(visibility){
+    if(visibility < 1000){
+      return 'Very Poor';
+    } else if(visibility >= 1000 && visibility < 2000){
+      return 'Poor';
+    } else if(visibility >= 2000 && visibility < 4000){
+      return 'Hazy';
+    } else {
+      return 'Clear';
+    }
   }
   function _tempDisplay(temp){
     return Number.parseFloat(temp).toFixed(1);
