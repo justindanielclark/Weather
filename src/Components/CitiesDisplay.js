@@ -3,7 +3,7 @@ import countryCodes from "../Data/countryCodes";
 import IconMap from "../Assets/IconMap";
 
 const CitiesDisplay = (props) => {
-  const {root, showSearchView} = props;
+  const {root, showSearchView, getWeatherDataByLatitudeAndLongitude} = props;
   const _El = {
     container: document.createElement('div'),
     titleContainer: document.createElement('div'),
@@ -76,6 +76,8 @@ const CitiesDisplay = (props) => {
       cityListItemButton.append(listNumberingPara, cityInfoContainer, coordinatesContainer)
       cityListItem.append(cityListItemButton);
       _El.citiesList.append(cityListItem);
+
+      cityListItemButton.addEventListener('click', ()=>getWeatherDataByLatitudeAndLongitude(cityDatum.lat, cityDatum.lon));
     })
   }
   function append(){
@@ -93,10 +95,6 @@ const CitiesDisplay = (props) => {
       root.removeChild(_El.container);
     }
   }
-  function _handleClick_backButton(){
-
-  } //toDo
-  function _handleClick_cityButton(){} //toDo
   return {
     append,
     prepend,

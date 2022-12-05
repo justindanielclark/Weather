@@ -1,9 +1,8 @@
 import classes from "../Stylesheets/classes";
 import countryCodes from "../Data/countryCodes";
 import IconMap from "../Assets/IconMap";
-
 const secondsInDay = 86400;
-
+const millisecondsInDay = 1000*60*60*24;
 const WeatherDisplay = (props) => {
   const {root, showSearchView} = props;
   const _IconCodeSVGs = {
@@ -103,6 +102,8 @@ const WeatherDisplay = (props) => {
     
     forecastContainer: document.createElement('div'),
     forecastTitle: document.createElement('h2'),
+    forecastSliderContainer: document.createElement('div'),
+    forecastSliderLabels: document.createElement('div'),
     forecastSlider: document.createElement('div'),
 
     backButton: document.createElement('button'),
@@ -146,19 +147,22 @@ const WeatherDisplay = (props) => {
       _El.windInfo.append(_El.windInfoImg, _El.windInfoPara);
       _El.visibilityInfo.append(_El.visibilityInfoImg, _El.visibilityInfoPara);
       _El.humidityInfo.append(_El.humidityInfoImg, _El.humidityInfoPara);
-      _El.forecastContainer.append(_El.forecastTitle, _El.forecastSlider);
+      _El.forecastSliderContainer.append(_El.forecastSliderLabels, _El.forecastSlider);
+      _El.forecastContainer.append(_El.forecastTitle, _El.forecastSliderContainer);
     }
   }
   function update(currentWeatherData, forecastWeatherData){
-    const {name: cityName, timezone: timezoneOffset, dt: atTime} = currentWeatherData;
-    const mainDisplaysDate = new Date((atTime+timezoneOffset)*1000).getDate();
-    console.log(mainDisplaysDate);
+    console.log({currentWeatherData});
+    console.log({forecastWeatherData});
+    const {name: cityName, timezone} = currentWeatherData;
     const {sunrise, sunset} = currentWeatherData.sys;
+    const sunriseTime = new Date((sunrise+timezone)*1000)
+    const sunsetTime = new Date((sunset+timezone)*1000)
+    const sunriseVal = (sunriseTime.getUTCHours()*60)+(sunriseTime.getUTCMinutes());
+    const sunsetVal = (sunsetTime.getUTCHours()*60)+(sunsetTime.getUTCMinutes());
     _updateCurrentWeatherDisplay(_transformWeatherDatum(currentWeatherData));
-    _updateForecastWeatherDisplay(forecastWeatherData, timezoneOffset, sunrise, sunset, mainDisplaysDate);
+    _updateForecastWeatherDisplay(forecastWeatherData, sunriseVal, sunsetVal);
     function _updateCurrentWeatherDisplay(weatherDisplayData){
-      console.log('Weather Display Data')
-      console.log(weatherDisplayData);
       //Determine if Day or Night
       const dayOrNight = (weatherDisplayData.atTime >= sunrise && weatherDisplayData.atTime <= sunset) ? 'day' : 'night';
       //Icon
@@ -184,15 +188,16 @@ const WeatherDisplay = (props) => {
       _El.humidityInfoImg.src = IconMap['humidity'];
       _El.humidityInfoPara.innerText = humidityMessage;
     }
-    function _updateForecastWeatherDisplay(forecastWeatherData, timezoneOffset, sunrise, sunset, displayDate){
-      const dailySecondsShift = 86400;
+    function _updateForecastWeatherDisplay(forecastWeatherData, sunriseVal, sunsetVal){
+      while(_El.forecastSlider.lastChild){
+        _El.forecastSlider.removeChild(_El.forecastSlider.lastChild);
+      }
       forecastWeatherData.list.forEach((weatherDatum) => {
         const weatherDisplayData = _transformWeatherDatum(weatherDatum);
-        const time = new Date((weatherDisplayData.atTime+timezoneOffset)*1000);
-        let todaysSunrise = sunrise + ((time.getDate()-displayDate)*dailySecondsShift);
-        let todaysSunset = sunset + ((time.getDate()-displayDate)*dailySecondsShift);
+        const time = new Date((weatherDisplayData.atTime)*1000);
+        const timeVal = (time.getUTCHours()*60)+(time.getUTCMinutes());
         //Determine if Day or Night
-        const dayOrNight = (weatherDisplayData.atTime >= todaysSunrise && weatherDisplayData.atTime <= todaysSunset) ? 'day' : 'night';
+        const dayOrNight = (timeVal >= sunriseVal && timeVal <= sunsetVal) ? 'day' : 'night';
         //Build DOM
         const forecastSlide = document.createElement('div');
         const forecastImg = document.createElement('img');
@@ -221,6 +226,7 @@ const WeatherDisplay = (props) => {
         //Apply Classes
         classes.add(forecastSlide, classes.weatherDisplay.forecastSlide);
         classes.add(forecastTime, classes.weatherDisplay.forecastInfoTimeDisplay);
+        classes.add(forecastImg, classes.weatherDisplay.forecastInfoImg);
         classes.add(forecastTemp, classes.weatherDisplay.forecastInfo);
         classes.add(forecastTempMax, classes.weatherDisplay.forecastInfo);
         classes.add(forecastTempMin, classes.weatherDisplay.forecastInfo);
@@ -231,7 +237,7 @@ const WeatherDisplay = (props) => {
         classes.add(forecastHumidityInfo, classes.weatherDisplay.forecastInfo);
         //Apply Data
         forecastImg.src = IconMap[_IconCodeSVGs[weatherDisplayData.weatherID][dayOrNight]];
-        const hours = time.getHours();
+        const hours = time.getUTCHours();
         let hoursMessage
         if(hours-12 > 0){
           hoursMessage = (hours-12) + 'PM'

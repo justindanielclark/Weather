@@ -45,7 +45,6 @@ const Search = (props) => {
   let _visible = true;
 
   _init(root)
-  _El.inputCityName.value = 'Bellflower' //!
   function _init(root){
     _init_applyClasses();
     _init_applyAttributes();
@@ -261,16 +260,6 @@ const Search = (props) => {
     if(_El.warningNote.classList.contains(classes.mixins.visible)){
       _El.warningNote.classList.add(classes.mixins.invisible);
       _El.warningNote.classList.remove(classes.mixins.visible);
-    }
-  }
-  function toggleButtonDisabled(){
-    _El.button.disabled = !_El.button.disabled;
-    if(_El.button.disabled){
-      _El.button.innerText = 'Searching...';
-    }
-    else{
-      _El.button.innerText = 'Search'
-      _El.button.removeChild(_El.searchingIcon);
     }
   }
   return {
