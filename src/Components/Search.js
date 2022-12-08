@@ -12,8 +12,8 @@ const longitudeLimits = {
 }
 const Search = (props) => {
   const {
-    getWeatherDataByLatitudeAndLongitude,
-    getWeatherDataByCityName,
+    searchByCityInfo,
+    searchByCoordInfo,
     root
   } = props;
   const _El = {
@@ -227,13 +227,17 @@ const Search = (props) => {
           else{
             cityQuery = `${cityName}, ${stateName}, ${countryCode}`;
           }
-          getWeatherDataByCityName(cityQuery);
+          _El.button.innerText = 'Searching...';
+          _El.button.disabled = true;
+          searchByCityInfo(cityQuery);
         }
       } else {
         const latitudeVal = _El.inputLatitude.value;
         const longitudeVal = _El.inputLongitude.value;
         if(latitudeVal && longitudeVal){
-          getWeatherDataByLatitudeAndLongitude(_El.inputLatitude.value, _El.inputLongitude.value);
+          _El.button.innerText = 'Searching...';
+          _El.button.disabled = true;
+          searchByCoordInfo(_El.inputLatitude.value, _El.inputLongitude.value, true);
         } else {
           showWarning('Entering Both Latitude and Longitude is Required');
         }
@@ -241,6 +245,8 @@ const Search = (props) => {
     }
   }    
   function showWarning(note){ 
+    _El.button.innerText = 'Search';
+    _El.button.disabled = false;
     if(_warningTimeout){
       clearInterval(_warningTimeout);
     }

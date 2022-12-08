@@ -13,7 +13,6 @@ const CitiesDisplay = (props) => {
     backButton: document.createElement('button'),
   }
   _init();
-
   function _init(){
     _init_buildDOMTree();
     _init_applyClasses();
@@ -38,9 +37,6 @@ const CitiesDisplay = (props) => {
     }
   }
   function update(cityData){
-    while(_El.citiesList.lastChild){
-      _El.citiesList.removeChild(_El.citiesList.lastChild);
-    }
     const countryData = countryCodes[countryCodes.findIndex(country => country.code === cityData[0].country)];
     const countryName = countryData["displayName"] ? countryData["displayName"] : countryData["name"];
     cityData.forEach((cityDatum, index) => {
