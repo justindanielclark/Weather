@@ -144,6 +144,7 @@ const Display = (() => {
 })()
 
 function getData(url){
+  console.log('trying to fetch');
   return fetch(url)
     .then(response => new Promise(function(resolve, reject){
       if(response.status === 200){
