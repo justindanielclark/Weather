@@ -167,7 +167,7 @@ function getWeatherDataByLatitudeAndLongitude(latitude, longitude){
   })
 }
 function getWeatherDataByCityName(cityInfo){
-  const geoDataURL = `http://api.openweathermap.org/geo/1.0/direct?q=${cityInfo}&limit=15&appid=${appID}`;
+  const geoDataURL = `https://api.openweathermap.org/geo/1.0/direct?q=${cityInfo}&limit=15&appid=${appID}`;
   return getData(geoDataURL)
   .then(cityData => new Promise((resolve, reject)=>{
     if(cityData.length > 0){
