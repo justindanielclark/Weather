@@ -5,7 +5,7 @@
   --secondary: #fafafa;
 }
 
-@media (min-resolution: 1dppx) {
+/* @media (min-resolution: 1dppx) {
   :root{font-size: 16px;}
 }
 @media (min-resolution: 2dppx) {
@@ -13,7 +13,7 @@
 }
 @media (min-resolution: 3dppx) {
   :root{font-size: 48px;}
-}
+} */
 
 
 * {
