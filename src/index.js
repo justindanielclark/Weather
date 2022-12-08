@@ -125,11 +125,11 @@ const Display = (() => {
     currentlySearching = false;
     switch(message){
       case 'Failed to fetch': {
-        showWarning('API Server Currently Experiencing Technical Issues');
+        showWarning('Failed to fetch: API Server Currently Experiencing Technical Issues');
         break;
       }
       case 'Bad Response': {
-        showWarning('API Server Currently Experiencing Technical Issues');
+        showWarning('Bad Response: API Server Currently Experiencing Technical Issues');
         break;
       }
       case 'No City Data Received': {
@@ -137,7 +137,7 @@ const Display = (() => {
         break;
       }
       default: {
-        showWarning('API Server Currently Experiencing Technical Issues');
+        showWarning('Generic Error: API Server Currently Experiencing Technical Issues');
       }
     }
   }
