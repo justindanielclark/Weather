@@ -3,7 +3,8 @@ import countryCodes from "../Data/countryCodes";
 import IconMap from "../Assets/IconMap";
 
 const CitiesDisplay = (props) => {
-  const {root, showSearchView, getWeatherDataByLatitudeAndLongitude} = props;
+  const buttons = [];
+  const {root, showSearchView, searchByCoordInfo} = props;
   const _El = {
     container: document.createElement('div'),
     titleContainer: document.createElement('div'),
@@ -26,7 +27,7 @@ const CitiesDisplay = (props) => {
     function _init_applyAttributes(){
       _El.titleImg.src = IconMap.city;
       _El.title.innerText = 'Choose City From Results:';
-      _El.backButton.innerText = '<<< Return to Search';
+      _El.backButton.innerText = 'Return to Search';
     }
     function _init_applyClasses(){
       for(let element in _El){
@@ -72,8 +73,14 @@ const CitiesDisplay = (props) => {
       cityListItemButton.append(listNumberingPara, cityInfoContainer, coordinatesContainer)
       cityListItem.append(cityListItemButton);
       _El.citiesList.append(cityListItem);
-
-      cityListItemButton.addEventListener('click', ()=>getWeatherDataByLatitudeAndLongitude(cityDatum.lat, cityDatum.lon));
+      buttons.push(cityListItemButton);
+      cityListItemButton.addEventListener('click', () => {
+        buttons.forEach(button=>{
+          button.disabled = true;
+        })
+        _El.backButton.innerText = 'Searching...';
+        searchByCoordInfo(cityDatum.lat, cityDatum.lon)
+      });
     })
   }
   function append(){

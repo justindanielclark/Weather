@@ -46,13 +46,13 @@ const Display = (() => {
     _displayToRemove = _activeDisplay;
     _activeDisplay = CitiesDisplay({
       showSearchView,
-      getWeatherDataByLatitudeAndLongitude,
+      searchByCoordInfo,
       displayUnits,
       toggleDisplayUnits,
       root: _El.slideContainer, 
     });
     _activeDisplay.append();
-    _activeDisplay.update(cityData);
+    _activeDisplay.update(cityData.data);
     classes.add(_El.slideContainer, classes.animations.slideLeft);
   }
   function showSearchView(){
